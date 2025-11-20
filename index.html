@@ -1,187 +1,520 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Arrow Dodge Challenge — Pixel Art (Square Map)</title>
-  <style>
-    html,body{margin:0;padding:0;overflow:hidden;background:#0b1220;height:100%;display:flex;justify-content:center;align-items:center;}
-    canvas{image-rendering:pixelated;border:4px solid #88c;}
-    #ui{position:fixed;top:10px;left:50%;transform:translateX(-50%);color:#e6eef8;font-family:Inter,system-ui,sans-serif;text-align:center;z-index:10;}
-    #hud{display:flex;gap:12px;justify-content:center;margin-bottom:6px;}
-    button{background:#2a3b4f;color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}
-    #gameoverUI{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,15,20,0.9);padding:20px 30px;border-radius:12px;text-align:center;display:none;color:#fff;z-index:20;}
-    #gameoverUI h1{margin:0 0 10px 0;font-size:22px;}
-    #gameoverUI p{margin:6px 0;font-size:16px;}
-  </style>
-</head>
-<body>
-  <canvas id="game"></canvas>
-  <div id="ui">
-    <div id="hud">
-      <div>Score: <span id="score">0.00</span>s</div>
-      <div>Best: <span id="best">0.00</span>s</div>
-      <button id="restart">Restart</button>
-    </div>
-    <div style="font-size:13px;color:#98a6b8">Controls: Arrow keys to dodge • Survive as long as possible</div>
-  </div>
-  <div id="gameoverUI">
-    <h1>Game Over</h1>
-    <p>Your Score: <span id="finalScore">0.00</span>s</p>
-    <p>Best Score: <span id="finalBest">0.00</span>s</p>
-    <button id="retry">Play Again</button>
-  </div>
-<script>
-'use strict';
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-let W = window.innerWidth, H = window.innerHeight;
-let size = Math.min(W,H);
-canvas.width = size; canvas.height = size;
+import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight, Youtube, Tv, Map, Sparkles, MessageSquare, Brain, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 
-window.addEventListener('resize',()=>{
-  W = window.innerWidth; H = window.innerHeight;
-  size = Math.min(W,H);
-  canvas.width = size; canvas.height = size;
-  player.x = size/2; player.y = size/2;
-});
+const AIPresentation = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-const scoreEl=document.getElementById('score');
-const bestEl=document.getElementById('best');
-const gameoverUI=document.getElementById('gameoverUI');
-const finalScore=document.getElementById('finalScore');
-const finalBest=document.getElementById('finalBest');
-const retryBtn=document.getElementById('retry');
-
-let lastTime=performance.now();
-let running=true;
-let startTime=performance.now();
-let elapsed=0;
-let best=parseFloat(localStorage.getItem('adc_best')||'0');
-bestEl.textContent=best.toFixed(2);
-
-const colors={bg:'#0b1220',player:'#f5d27a',player_accent:'#c88',arrow:'#cfcfcf',arrow_tip:'#444'};
-const player={x:size/2,y:size/2,size:10,speed:180};
-const keys={left:false,right:false,up:false,down:false};
-window.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')keys.left=true;if(e.key==='ArrowRight')keys.right=true;if(e.key==='ArrowUp')keys.up=true;if(e.key==='ArrowDown')keys.down=true;});
-window.addEventListener('keyup',e=>{if(e.key==='ArrowLeft')keys.left=false;if(e.key==='ArrowRight')keys.right=false;if(e.key==='ArrowUp')keys.up=false;if(e.key==='ArrowDown')keys.down=false;});
-
-const arrows=[];let spawnTimer=0;let spawnInterval=0.5;
-function spawnArrow(){
-  const side=Math.floor(Math.random()*4);
-  let x,y,vx,vy;
-  const t=(performance.now()-startTime)/1000;
-  const speedBase=180+Math.random()*60;
-  const speedScale=1 + t*0.03;
-  const speed=speedBase*speedScale;
-  const spread=0.25;
-  if(side===0){x=Math.random()*size;y=-10;}
-  else if(side===1){x=size+10;y=Math.random()*size;}
-  else if(side===2){x=Math.random()*size;y=size+10;}
-  else{x=-10;y=Math.random()*size;}
-  const angleToCenter=Math.atan2((size/2)-y,(size/2)-x);
-  const angle=angleToCenter+(Math.random()*2-1)*spread;
-  vx=Math.cos(angle)*speed; vy=Math.sin(angle)*speed;
-  arrows.push({x,y,vx,vy,r:angle});
-}
-
-function resetGame(){
-  arrows.length=0; spawnTimer=0; spawnInterval=0.5;
-  startTime=performance.now(); running=true;
-  player.x=size/2; player.y=size/2;
-  gameoverUI.style.display='none';
-}
-
-document.getElementById('restart').addEventListener('click',()=>resetGame());
-retryBtn.addEventListener('click',()=>resetGame());
-
-function update(dt){
-  const moveX=(keys.right?1:0)-(keys.left?1:0);
-  const moveY=(keys.down?1:0)-(keys.up?1:0);
-  const len=Math.hypot(moveX,moveY)||1;
-  player.x+=(moveX/len)*player.speed*dt;
-  player.y+=(moveY/len)*player.speed*dt;
-  player.x=Math.max(player.size,Math.min(size-player.size,player.x));
-  player.y=Math.max(player.size,Math.min(size-player.size,player.y));
-
-  spawnTimer-=dt;
-  const t=(performance.now()-startTime)/1000;
-  const difficulty=Math.min(1,t/30);
-  const maxArrows = 8 + Math.floor(t*15);
-  spawnInterval=Math.max(0.2,0.5-difficulty*0.3);
-  if(spawnTimer<=0 && arrows.length < maxArrows){spawnArrow();spawnTimer=spawnInterval*(0.6+Math.random()*0.8);}
-
-  for(let i=arrows.length-1;i>=0;i--){
-    const a=arrows[i];a.x+=a.vx*dt;a.y+=a.vy*dt;
-    if(a.x<-60||a.x>size+60||a.y<-60||a.y>size+60)arrows.splice(i,1);
-  }
-
-  for(const a of arrows){
-    const dx=a.x-player.x,dy=a.y-player.y,dist=Math.hypot(dx,dy);
-    if(dist<player.size+6){
-      running=false;
-      const surv=(performance.now()-startTime)/1000;
-      if(surv>best){best=surv;localStorage.setItem('adc_best',best.toFixed(2));bestEl.textContent=best.toFixed(2);}
-      showGameOver(surv,best);
-      break;
+  const slides = [
+    // Slide 1: Title
+    {
+      title: "AI는 이미 우리 곁에 있습니다",
+      subtitle: "+ 질문하는 힘 배우기",
+      content: (
+        <div className="flex flex-col items-center gap-8">
+          <div className="flex gap-6 items-center justify-center flex-wrap">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-20 h-20 bg-red-500 rounded-2xl flex items-center justify-center">
+                <Youtube className="w-12 h-12 text-white" />
+              </div>
+              <span className="text-sm font-medium">유튜브</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-20 h-20 bg-red-600 rounded-2xl flex items-center justify-center">
+                <Tv className="w-12 h-12 text-white" />
+              </div>
+              <span className="text-sm font-medium">넷플릭스</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-20 h-20 bg-yellow-400 rounded-2xl flex items-center justify-center">
+                <Map className="w-12 h-12 text-gray-800" />
+              </div>
+              <span className="text-sm font-medium">카카오맵</span>
+            </div>
+          </div>
+          <div className="bg-blue-50 p-6 rounded-xl max-w-lg">
+            <p className="text-lg font-semibold text-blue-900 text-center">
+              오늘의 목표
+            </p>
+            <p className="text-gray-700 mt-2 text-center">
+              AI 이해하기 + ChatGPT 활용 능력 향상하기
+            </p>
+          </div>
+        </div>
+      )
+    },
+    // Slide 2: What is AI?
+    {
+      title: "AI란 무엇인가?",
+      subtitle: "스스로 생각하고 예측하는 컴퓨터",
+      content: (
+        <div className="flex flex-col gap-6">
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl">
+            <p className="text-xl font-semibold text-gray-800 mb-4">일상 속 AI 예시</p>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-3">
+                <Tv className="w-6 h-6 text-purple-600" />
+                <span className="text-lg">영화·영상 추천</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <MessageSquare className="w-6 h-6 text-pink-600" />
+                <span className="text-lg">맞춤 뉴스 제공</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <Brain className="w-6 h-6 text-indigo-600" />
+                <span className="text-lg">음성인식 (시리, 빅스비)</span>
+              </li>
+            </ul>
+          </div>
+          <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
+            <p className="text-center font-semibold text-gray-700 mb-4">AI의 작동 흐름</p>
+            <div className="flex items-center justify-center gap-4">
+              <div className="bg-blue-100 px-4 py-3 rounded-lg">사용자 입력</div>
+              <ChevronRight className="w-6 h-6 text-gray-400" />
+              <div className="bg-purple-100 px-4 py-3 rounded-lg">AI 분석</div>
+              <ChevronRight className="w-6 h-6 text-gray-400" />
+              <div className="bg-green-100 px-4 py-3 rounded-lg">결과 제공</div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // Slide 3: Types of AI
+    {
+      title: "AI의 종류",
+      subtitle: "우리 주변의 다양한 AI",
+      content: (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
+            <h3 className="text-xl font-bold text-blue-900 mb-2">추천형 AI</h3>
+            <p className="text-gray-700">넷플릭스, 유튜브 추천</p>
+            <p className="text-sm text-gray-600 mt-2">내 취향을 분석해서 콘텐츠를 추천</p>
+          </div>
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl">
+            <h3 className="text-xl font-bold text-purple-900 mb-2">생성형 AI</h3>
+            <p className="text-gray-700">ChatGPT, DALL·E</p>
+            <p className="text-sm text-gray-600 mt-2">글, 그림, 코드를 새롭게 만들어냄</p>
+          </div>
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
+            <h3 className="text-xl font-bold text-green-900 mb-2">자율주행 AI</h3>
+            <p className="text-gray-700">테슬라, 구글 웨이모</p>
+            <p className="text-sm text-gray-600 mt-2">스스로 운전하는 자동차</p>
+          </div>
+          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl">
+            <h3 className="text-xl font-bold text-yellow-900 mb-2">음성비서 AI</h3>
+            <p className="text-gray-700">시리, 빅스비, 알렉사</p>
+            <p className="text-sm text-gray-600 mt-2">말로 명령하면 대답하고 실행</p>
+          </div>
+        </div>
+      )
+    },
+    // Slide 4: What is ChatGPT?
+    {
+      title: "ChatGPT란?",
+      subtitle: "대화하는 인공지능, 질문에 답하고 글을 생성함",
+      content: (
+        <div className="flex flex-col gap-6">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-8 rounded-xl">
+            <div className="flex items-center gap-3 mb-6">
+              <MessageSquare className="w-10 h-10 text-green-600" />
+              <h3 className="text-2xl font-bold text-gray-800">ChatGPT의 특징</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">1</div>
+                <div>
+                  <p className="font-semibold text-lg">대화형 AI</p>
+                  <p className="text-gray-600">마치 사람과 대화하듯 주고받을 수 있어요</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">2</div>
+                <div>
+                  <p className="font-semibold text-lg">텍스트 기반 생성</p>
+                  <p className="text-gray-600">글, 코드, 번역, 요약 등 다양한 텍스트 작성</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">3</div>
+                <div>
+                  <p className="font-semibold text-lg">다양한 질문 가능</p>
+                  <p className="text-gray-600">일상 질문부터 전문적인 내용까지</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // Slide 5: ChatGPT Cautions
+    {
+      title: "ChatGPT 사용 시 주의점",
+      subtitle: "똑똑하게 활용하기",
+      content: (
+        <div className="flex flex-col gap-4">
+          <div className="bg-red-50 border-2 border-red-200 p-6 rounded-xl flex items-start gap-4">
+            <AlertCircle className="w-8 h-8 text-red-600 flex-shrink-0" />
+            <div>
+              <p className="font-bold text-lg text-red-900 mb-2">사실 오류 가능</p>
+              <p className="text-gray-700">ChatGPT도 틀릴 수 있어요. 중요한 정보는 꼭 검증하세요!</p>
+            </div>
+          </div>
+          <div className="bg-orange-50 border-2 border-orange-200 p-6 rounded-xl flex items-start gap-4">
+            <AlertCircle className="w-8 h-8 text-orange-600 flex-shrink-0" />
+            <div>
+              <p className="font-bold text-lg text-orange-900 mb-2">개인정보 입력 금지</p>
+              <p className="text-gray-700">이름, 주소, 전화번호, 비밀번호 등은 절대 입력하지 마세요!</p>
+            </div>
+          </div>
+          <div className="bg-yellow-50 border-2 border-yellow-200 p-6 rounded-xl flex items-start gap-4">
+            <AlertCircle className="w-8 h-8 text-yellow-600 flex-shrink-0" />
+            <div>
+              <p className="font-bold text-lg text-yellow-900 mb-2">답변을 무조건 신뢰하지 말 것</p>
+              <p className="text-gray-700">여러 번 질문하고, 다른 자료와 비교해보세요</p>
+            </div>
+          </div>
+          <div className="bg-blue-50 p-4 rounded-lg mt-2">
+            <p className="text-center font-semibold text-blue-900">
+              💡 활동: ChatGPT가 틀릴 수 있는 질문 찾기
+            </p>
+          </div>
+        </div>
+      )
+    },
+    // Slide 6: What is a Prompt?
+    {
+      title: "프롬프트란?",
+      subtitle: "질문하는 힘 - AI에게 지시하는 명령어",
+      content: (
+        <div className="flex flex-col gap-6">
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-8 rounded-xl">
+            <h3 className="text-2xl font-bold text-indigo-900 mb-6 text-center">프롬프트 공식</h3>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+              <div className="bg-pink-100 px-6 py-4 rounded-lg text-center">
+                <p className="font-bold text-pink-900 text-lg">역할 (Role)</p>
+                <p className="text-sm text-gray-600 mt-1">누구처럼?</p>
+              </div>
+              <span className="text-2xl font-bold text-gray-400">+</span>
+              <div className="bg-blue-100 px-6 py-4 rounded-lg text-center">
+                <p className="font-bold text-blue-900 text-lg">목적 (Task)</p>
+                <p className="text-sm text-gray-600 mt-1">무엇을?</p>
+              </div>
+              <span className="text-2xl font-bold text-gray-400">+</span>
+              <div className="bg-green-100 px-6 py-4 rounded-lg text-center">
+                <p className="font-bold text-green-900 text-lg">조건 (Detail)</p>
+                <p className="text-sm text-gray-600 mt-1">어떻게?</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white border-2 border-indigo-200 p-6 rounded-xl">
+            <p className="font-semibold text-gray-800 mb-3">✨ 예시:</p>
+            <div className="bg-indigo-50 p-4 rounded-lg">
+              <p className="text-gray-800 leading-relaxed">
+                <span className="font-bold text-pink-700">너는 초등학교 선생님이야.</span>{' '}
+                <span className="font-bold text-blue-700">10세 아이가 이해할 수 있도록</span>{' '}
+                <span className="font-bold text-green-700">분수를 설명해줘.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // Slide 7: Good vs Bad Questions
+    {
+      title: "좋은 질문 vs 나쁜 질문",
+      subtitle: "질문의 차이가 답변의 차이를 만듭니다",
+      content: (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-red-50 border-2 border-red-200 p-6 rounded-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <XCircle className="w-8 h-8 text-red-600" />
+              <h3 className="text-xl font-bold text-red-900">나쁜 질문</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-red-700 font-medium">❌ 분수 알려줘</p>
+                <p className="text-sm text-gray-600 mt-1">→ 막연하고 조건이 없음</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-red-700 font-medium">❌ 날씨 어때?</p>
+                <p className="text-sm text-gray-600 mt-1">→ 장소와 시간이 불명확</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-red-700 font-medium">❌ 글 써줘</p>
+                <p className="text-sm text-gray-600 mt-1">→ 주제와 형식이 없음</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-green-50 border-2 border-green-200 p-6 rounded-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <CheckCircle className="w-8 h-8 text-green-600" />
+              <h3 className="text-xl font-bold text-green-900">좋은 질문</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-green-700 font-medium">✅ 초등학생이 이해하도록 사과 그림으로 분수 설명해줘</p>
+                <p className="text-sm text-gray-600 mt-1">→ 대상, 방법 구체적</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-green-700 font-medium">✅ 오늘 서울 강남구 날씨를 아침·오후·저녁으로 알려줘</p>
+                <p className="text-sm text-gray-600 mt-1">→ 장소, 시간 명확</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-green-700 font-medium">✅ 환경 보호를 주제로 중학생용 3문단 설득 글 써줘</p>
+                <p className="text-sm text-gray-600 mt-1">→ 주제, 대상, 형식 명확</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    // Slide 8: Practice 1
+    {
+      title: "실습 1 - 자기소개 시키기",
+      subtitle: "ChatGPT에게 역할과 조건 알려주기",
+      content: (
+        <div className="flex flex-col gap-6">
+          <div className="bg-gradient-to-r from-cyan-50 to-blue-50 p-6 rounded-xl">
+            <p className="text-xl font-bold text-cyan-900 mb-3">🎯 활동 목표</p>
+            <p className="text-gray-700 text-lg">AI에게 원하는 역할과 조건을 명확히 알려주어 자기소개를 시켜봅시다</p>
+          </div>
+          <div className="bg-white border-2 border-cyan-200 p-6 rounded-xl">
+            <p className="font-semibold text-gray-800 mb-4">📝 예시 프롬프트:</p>
+            <div className="space-y-3">
+              <div className="bg-cyan-50 p-4 rounded-lg">
+                <p className="text-gray-800 font-medium">너는 나의 친절한 AI 비서야. 나를 소개하는 글을 3문장으로 써줘.</p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-gray-800 font-medium">너는 전문 작가야. 나를 소개하는 재미있는 글을 5문장으로 써줘.</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-yellow-50 p-5 rounded-xl">
+            <p className="text-center text-gray-700">
+              💡 <span className="font-bold">도전:</span> 역할을 바꿔가며 다양한 자기소개를 만들어보세요!
+            </p>
+          </div>
+        </div>
+      )
+    },
+    // Slide 9: Practice 2
+    {
+      title: "실습 2 - 하루 이야기 설명하기",
+      subtitle: "자신의 하루를 ChatGPT에게 요약시켜보기",
+      content: (
+        <div className="flex flex-col gap-6">
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl">
+            <p className="text-xl font-bold text-purple-900 mb-3">🎯 활동 목표</p>
+            <p className="text-gray-700 text-lg">프롬프트 조건을 바꿔가며 답변의 변화를 관찰해봅시다</p>
+          </div>
+          <div className="bg-white border-2 border-purple-200 p-6 rounded-xl">
+            <p className="font-semibold text-gray-800 mb-4">📝 예시 프롬프트:</p>
+            <div className="space-y-3">
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">기본형:</p>
+                <p className="text-gray-800 font-medium">오늘 내가 한 일을 하루 일기처럼 5문장으로 요약해줘.</p>
+              </div>
+              <div className="bg-pink-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">변형 1:</p>
+                <p className="text-gray-800 font-medium">오늘 내가 한 일을 감동적인 이야기처럼 써줘.</p>
+              </div>
+              <div className="bg-indigo-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">변형 2:</p>
+                <p className="text-gray-800 font-medium">오늘 내가 한 일을 시간순으로 3개 항목으로 정리해줘.</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-yellow-50 p-5 rounded-xl">
+            <p className="text-center text-gray-700">
+              🔍 <span className="font-bold">관찰 포인트:</span> 조건을 바꾸면 답변이 어떻게 달라지나요?
+            </p>
+          </div>
+        </div>
+      )
+    },
+    // Slide 10: Practice 3
+    {
+      title: "실습 3 - 질문 바꾸기 게임",
+      subtitle: "같은 주제, 다른 질문으로 다양한 답변 얻기",
+      content: (
+        <div className="flex flex-col gap-6">
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-xl">
+            <p className="text-xl font-bold text-orange-900 mb-3">🎯 활동 목표</p>
+            <p className="text-gray-700 text-lg">질문 방식에 따라 AI의 답변이 완전히 달라진다는 것을 경험하기</p>
+          </div>
+          <div className="bg-white border-2 border-orange-200 p-6 rounded-xl">
+            <p className="font-semibold text-gray-800 mb-4">🌤️ 날씨 질문 비교 예시:</p>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-red-100 text-red-700 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold text-sm">1</div>
+                <div className="flex-1 bg-red-50 p-3 rounded-lg">
+                  <p className="text-gray-800">오늘 날씨 알려줘</p>
+                  <p className="text-xs text-gray-500 mt-1">→ 막연한 질문</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-orange-100 text-orange-700 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold text-sm">2</div>
+                <div className="flex-1 bg-orange-50 p-3 rounded-lg">
+                  <p className="text-gray-800">오늘 서울 강남구 날씨를 아침·오후·저녁으로 알려줘</p>
+                  <p className="text-xs text-gray-500 mt-1">→ 구체적인 질문</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-xl">
+            <p className="font-semibold text-green-900 mb-3">💡 여러분도 해보세요:</p>
+            <ul className="space-y-2 text-gray-700">
+              <li>• 음식 추천 받기 (막연 vs 구체적)</li>
+              <li>• 책 요약 받기 (짧게 vs 자세하게)</li>
+              <li>• 학습 계획 만들기 (일반 vs 맞춤형)</li>
+            </ul>
+          </div>
+        </div>
+      )
+    },
+    // Slide 11: Summary
+    {
+      title: "오늘 배운 것 정리",
+      subtitle: "AI와 함께하는 미래를 준비하세요",
+      content: (
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center">
+              <div className="text-4xl mb-3">🤖</div>
+              <p className="font-bold text-blue-900 text-lg mb-2">AI는 이미 우리 일상에 있다</p>
+              <p className="text-sm text-gray-600">넷플릭스, 유튜브부터 ChatGPT까지</p>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center">
+              <div className="text-4xl mb-3">💬</div>
+              <p className="font-bold text-purple-900 text-lg mb-2">좋은 질문이 AI 활용의 핵심이다</p>
+              <p className="text-sm text-gray-600">역할 + 목적 + 조건</p>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl text-center">
+              <div className="text-4xl mb-3">🔄</div>
+              <p className="font-bold text-green-900 text-lg mb-2">질문을 바꾸면 답도 달라진다</p>
+              <p className="text-sm text-gray-600">프롬프트 실험의 중요성</p>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl">
+            <p className="text-xl font-bold text-orange-900 mb-4 text-center">📚 활동 아이디어</p>
+            <ul className="space-y-2 text-gray-700">
+              <li className="flex items-start gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span>오늘 배운 질문 공식(R+T+D)을 내 생활에 적용해보기</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span>가족/자녀와 함께 프롬프트 실험하기</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span>블로그나 SNS 글쓰기 아이디어 ChatGPT에게 요청하기</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span>AI가 틀린 답을 찾고, 스스로 검증하기</span>
+              </li>
+            </ul>
+          </div>
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-xl text-center text-white">
+            <p className="text-2xl font-bold">🎉 축하합니다!</p>
+            <p className="mt-2 text-lg">이제 여러분도 AI를 똑똑하게 활용할 수 있습니다</p>
+          </div>
+        </div>
+      )
     }
-  }
-  elapsed=(performance.now()-startTime)/1000;scoreEl.textContent=elapsed.toFixed(2);
-}
+  ];
 
-function showGameOver(score,bestScore){
-  finalScore.textContent=score.toFixed(2);
-  finalBest.textContent=bestScore.toFixed(2);
-  gameoverUI.style.display='block';
-}
+  const nextSlide = () => {
+    if (currentSlide < slides.length - 1) {
+      setCurrentSlide(currentSlide + 1);
+    }
+  };
 
-function drawRect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
-function draw(){
-  // 전체 캔버스 초기화
-  ctx.fillStyle = '#345'; // 양궁장 배경 색
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
+    }
+  };
 
-  // 정사각형 게임 영역
-  ctx.fillStyle = '#0b1220'; // 게임 배경 색
-  ctx.fillRect(0, 0, size, size);
+  const goToSlide = (index) => {
+    setCurrentSlide(index);
+  };
 
-  // 플레이어 그리기
-  const px = Math.round(player.x), py = Math.round(player.y);
-  drawRect(px-3, py-6, 6, 8, colors.player);
-  drawRect(px-2, py-10, 4, 4, colors.player);
-  drawRect(px-6, py-6, 2, 6, colors.player_accent);
-  drawRect(px+4, py-6, 2, 6, colors.player_accent);
+  const currentSlideData = slides[currentSlide];
 
-  // 화살 그리기
-  for(const a of arrows){
-    ctx.save();
-    ctx.translate(a.x, a.y);
-    ctx.rotate(a.r);
-    ctx.fillStyle = colors.arrow;
-    ctx.fillRect(-8,-1,16,2);
-    ctx.fillStyle = colors.arrow_tip;
-    ctx.beginPath();
-    ctx.moveTo(8,-3);
-    ctx.lineTo(12,0);
-    ctx.lineTo(8,3);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle='#e25';
-    ctx.fillRect(-12,-3,4,2);
-    ctx.fillRect(-12,1,4,2);
-    ctx.restore();
-  }
-}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-t-2xl shadow-lg p-6 border-b-4 border-indigo-500">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 text-center">
+            {currentSlideData.title}
+          </h1>
+          <p className="text-lg text-gray-600 text-center mt-2">
+            {currentSlideData.subtitle}
+          </p>
+        </div>
 
-function loop(ts){
-  const dt=Math.min(0.05,(ts-lastTime)/1000);
-  lastTime=ts;
-  if(running)update(dt);
-  draw();
-  requestAnimationFrame(loop);
-}
-resetGame();
-requestAnimationFrame(loop);
-</script>
-</body>
-</html>
+        {/* Content */}
+        <div className="bg-white shadow-lg p-8 md:p-12 min-h-[500px]">
+          {currentSlideData.content}
+        </div>
+
+        {/* Navigation */}
+        <div className="bg-white rounded-b-2xl shadow-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                currentSlide === 0
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              }`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+              이전
+            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-gray-600 font-semibold">
+                {currentSlide + 1} / {slides.length}
+              </span>
+            </div>
+
+            <button
+              onClick={nextSlide}
+              disabled={currentSlide === slides.length - 1}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
+                currentSlide === slides.length - 1
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              }`}
+            >
+              다음
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Slide indicators */}
+          <div className="flex justify-center gap-2 flex-wrap">
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`w-3 h-3 rounded-full transition-all ${
+                  index === currentSlide
+                    ? 'bg-indigo-600 w-8'
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+                aria-label={`슬라이드 ${index + 1}로 이동`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AIPresentation;
