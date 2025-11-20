@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arrow Dodge Challenge — Pixel Art (Square Map)</title>
+  <style>
+    html,body{margin:0;padding:0;overflow:hidden;background:#0b1220;height:100%;display:flex;justify-content:center;align-items:center;}
+    canvas{image-rendering:pixelated;border:4px solid #88c;}
+    #ui{position:fixed;top:10px;left:50%;transform:translateX(-50%);color:#e6eef8;font-family:Inter,system-ui,sans-serif;text-align:center;z-index:10;}
+    #hud{display:flex;gap:12px;justify-content:center;margin-bottom:6px;}
+    button{background:#2a3b4f;color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}
+    #gameoverUI{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,15,20,0.9);padding:20px 30px;border-radius:12px;text-align:center;display:none;color:#fff;z-index:20;}
+    #gameoverUI h1{margin:0 0 10px 0;font-size:22px;}
+    #gameoverUI p{margin:6px 0;font-size:16px;}
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="ui">
+    <div id="hud">
+      <div>Score: <span id="score">0.00</span>s</div>
+      <div>Best: <span id="best">0.00</span>s</div>
+      <button id="restart">Restart</button>
+    </div>
+    <div style="font-size:13px;color:#98a6b8">Controls: Arrow keys to dodge • Survive as long as possible</div>
+  </div>
+  <div id="gameoverUI">
+    <h1>Game Over</h1>
+    <p>Your Score: <span id="finalScore">0.00</span>s</p>
+    <p>Best Score: <span id="finalBest">0.00</span>s</p>
+    <button id="retry">Play Again</button>
+  </div>
+<script>
+'use strict';
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = window.innerWidth, H = window.innerHeight;
+let size = Math.min(W,H);
+canvas.width = size; canvas.height = size;
+
+window.addEventListener('resize',()=>{
+  W = window.innerWidth; H = window.innerHeight;
+  size = Math.min(W,H);
+  canvas.width = size; canvas.height = size;
+  player.x = size/2; player.y = size/2;
+});
+
+const scoreEl=document.getElementById('score');
+const bestEl=document.getElementById('best');
+const gameoverUI=document.getElementById('gameoverUI');
+const finalScore=document.getElementById('finalScore');
+const finalBest=document.getElementById('finalBest');
+const retryBtn=document.getElementById('retry');
+
+let lastTime=performance.now();
+let running=true;
+let startTime=performance.now();
+let elapsed=0;
+let best=parseFloat(localStorage.getItem('adc_best')||'0');
+bestEl.textContent=best.toFixed(2);
+
+const colors={bg:'#0b1220',player:'#f5d27a',player_accent:'#c88',arrow:'#cfcfcf',arrow_tip:'#444'};
+const player={x:size/2,y:size/2,size:10,speed:180};
+const keys={left:false,right:false,up:false,down:false};
+window.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')keys.left=true;if(e.key==='ArrowRight')keys.right=true;if(e.key==='ArrowUp')keys.up=true;if(e.key==='ArrowDown')keys.down=true;});
+window.addEventListener('keyup',e=>{if(e.key==='ArrowLeft')keys.left=false;if(e.key==='ArrowRight')keys.right=false;if(e.key==='ArrowUp')keys.up=false;if(e.key==='ArrowDown')keys.down=false;});
+
+const arrows=[];let spawnTimer=0;let spawnInterval=0.5;
+function spawnArrow(){
+  const side=Math.floor(Math.random()*4);
+  let x,y,vx,vy;
+  const t=(performance.now()-startTime)/1000;
+  const speedBase=180+Math.random()*60;
+  const speedScale=1 + t*0.03;
+  const speed=speedBase*speedScale;
+  const spread=0.25;
+  if(side===0){x=Math.random()*size;y=-10;}
+  else if(side===1){x=size+10;y=Math.random()*size;}
+  else if(side===2){x=Math.random()*size;y=size+10;}
+  else{x=-10;y=Math.random()*size;}
+  const angleToCenter=Math.atan2((size/2)-y,(size/2)-x);
+  const angle=angleToCenter+(Math.random()*2-1)*spread;
+  vx=Math.cos(angle)*speed; vy=Math.sin(angle)*speed;
+  arrows.push({x,y,vx,vy,r:angle});
+}
+
+function resetGame(){
+  arrows.length=0; spawnTimer=0; spawnInterval=0.5;
+  startTime=performance.now(); running=true;
+  player.x=size/2; player.y=size/2;
+  gameoverUI.style.display='none';
+}
+
+document.getElementById('restart').addEventListener('click',()=>resetGame());
+retryBtn.addEventListener('click',()=>resetGame());
+
+function update(dt){
+  const moveX=(keys.right?1:0)-(keys.left?1:0);
+  const moveY=(keys.down?1:0)-(keys.up?1:0);
+  const len=Math.hypot(moveX,moveY)||1;
+  player.x+=(moveX/len)*player.speed*dt;
+  player.y+=(moveY/len)*player.speed*dt;
+  player.x=Math.max(player.size,Math.min(size-player.size,player.x));
+  player.y=Math.max(player.size,Math.min(size-player.size,player.y));
+
+  spawnTimer-=dt;
+  const t=(performance.now()-startTime)/1000;
+  const difficulty=Math.min(1,t/30);
+  const maxArrows = 8 + Math.floor(t*15);
+  spawnInterval=Math.max(0.2,0.5-difficulty*0.3);
+  if(spawnTimer<=0 && arrows.length < maxArrows){spawnArrow();spawnTimer=spawnInterval*(0.6+Math.random()*0.8);}
+
+  for(let i=arrows.length-1;i>=0;i--){
+    const a=arrows[i];a.x+=a.vx*dt;a.y+=a.vy*dt;
+    if(a.x<-60||a.x>size+60||a.y<-60||a.y>size+60)arrows.splice(i,1);
+  }
+
+  for(const a of arrows){
+    const dx=a.x-player.x,dy=a.y-player.y,dist=Math.hypot(dx,dy);
+    if(dist<player.size+6){
+      running=false;
+      const surv=(performance.now()-startTime)/1000;
+      if(surv>best){best=surv;localStorage.setItem('adc_best',best.toFixed(2));bestEl.textContent=best.toFixed(2);}
+      showGameOver(surv,best);
+      break;
+    }
+  }
+  elapsed=(performance.now()-startTime)/1000;scoreEl.textContent=elapsed.toFixed(2);
+}
+
+function showGameOver(score,bestScore){
+  finalScore.textContent=score.toFixed(2);
+  finalBest.textContent=bestScore.toFixed(2);
+  gameoverUI.style.display='block';
+}
+
+function drawRect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
+function draw(){
+  // 전체 캔버스 초기화
+  ctx.fillStyle = '#345'; // 양궁장 배경 색
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 정사각형 게임 영역
+  ctx.fillStyle = '#0b1220'; // 게임 배경 색
+  ctx.fillRect(0, 0, size, size);
+
+  // 플레이어 그리기
+  const px = Math.round(player.x), py = Math.round(player.y);
+  drawRect(px-3, py-6, 6, 8, colors.player);
+  drawRect(px-2, py-10, 4, 4, colors.player);
+  drawRect(px-6, py-6, 2, 6, colors.player_accent);
+  drawRect(px+4, py-6, 2, 6, colors.player_accent);
+
+  // 화살 그리기
+  for(const a of arrows){
+    ctx.save();
+    ctx.translate(a.x, a.y);
+    ctx.rotate(a.r);
+    ctx.fillStyle = colors.arrow;
+    ctx.fillRect(-8,-1,16,2);
+    ctx.fillStyle = colors.arrow_tip;
+    ctx.beginPath();
+    ctx.moveTo(8,-3);
+    ctx.lineTo(12,0);
+    ctx.lineTo(8,3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle='#e25';
+    ctx.fillRect(-12,-3,4,2);
+    ctx.fillRect(-12,1,4,2);
+    ctx.restore();
+  }
+}
+
+function loop(ts){
+  const dt=Math.min(0.05,(ts-lastTime)/1000);
+  lastTime=ts;
+  if(running)update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+resetGame();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
