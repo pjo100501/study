@@ -1,520 +1,994 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Youtube, Tv, Map, Sparkles, MessageSquare, Brain, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI와 함께하는 우리의 생활 - 확장판</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const AIPresentation = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
 
-  const slides = [
-    // Slide 1: Title
-    {
-      title: "AI는 이미 우리 곁에 있습니다",
-      subtitle: "+ 질문하는 힘 배우기",
-      content: (
-        <div className="flex flex-col items-center gap-8">
-          <div className="flex gap-6 items-center justify-center flex-wrap">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-20 h-20 bg-red-500 rounded-2xl flex items-center justify-center">
-                <Youtube className="w-12 h-12 text-white" />
-              </div>
-              <span className="text-sm font-medium">유튜브</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-20 h-20 bg-red-600 rounded-2xl flex items-center justify-center">
-                <Tv className="w-12 h-12 text-white" />
-              </div>
-              <span className="text-sm font-medium">넷플릭스</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-20 h-20 bg-yellow-400 rounded-2xl flex items-center justify-center">
-                <Map className="w-12 h-12 text-gray-800" />
-              </div>
-              <span className="text-sm font-medium">카카오맵</span>
-            </div>
-          </div>
-          <div className="bg-blue-50 p-6 rounded-xl max-w-lg">
-            <p className="text-lg font-semibold text-blue-900 text-center">
-              오늘의 목표
-            </p>
-            <p className="text-gray-700 mt-2 text-center">
-              AI 이해하기 + ChatGPT 활용 능력 향상하기
-            </p>
-          </div>
+        .presentation-container {
+            width: 90vw;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 675px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 50px;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-number {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 14px;
+            color: #999;
+            font-weight: 600;
+        }
+
+        h1 {
+            font-size: 42px;
+            color: #2d3748;
+            margin-bottom: 25px;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 22px;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .emoji {
+            font-size: 60px;
+            margin: 15px 0;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .service-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            transition: transform 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .service-card .emoji {
+            font-size: 50px;
+        }
+
+        .service-card h3 {
+            font-size: 20px;
+            margin-top: 10px;
+            color: white;
+        }
+
+        .service-card p {
+            font-size: 14px;
+            margin-top: 8px;
+            opacity: 0.9;
+        }
+
+        .content-box {
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .ai-types {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .ai-type {
+            flex: 1;
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .ai-type h3 {
+            color: #667eea;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .ai-type p {
+            color: #4a5568;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .warning-box {
+            background: #fff5f5;
+            border: 3px solid #fc8181;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .warning-box h3 {
+            color: #c53030;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .warning-list {
+            list-style: none;
+            font-size: 17px;
+        }
+
+        .warning-list li {
+            padding: 12px 0;
+            color: #2d3748;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .warning-list li:before {
+            content: "⚠️";
+            margin-right: 12px;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .info-box {
+            background: #e6fffa;
+            border: 3px solid #4fd1c5;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .info-box h3 {
+            color: #0d9488;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .example-box {
+            background: #fef3c7;
+            border: 3px solid #fbbf24;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .example-box h3 {
+            color: #d97706;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .practice-box {
+            background: #dbeafe;
+            border: 3px solid #3b82f6;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .practice-box h3 {
+            color: #1e40af;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .chat-bubble {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            margin: 12px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 16px;
+        }
+
+        .user-bubble {
+            background: #667eea;
+            color: white;
+            margin-left: 40px;
+        }
+
+        .ai-bubble {
+            background: #48bb78;
+            color: white;
+            margin-right: 40px;
+        }
+
+        .step-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .step-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            margin-top: 25px;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            font-size: 18px;
+        }
+
+        .comparison-table td {
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            font-size: 16px;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: white;
+            padding: 10px 0;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5a67d8;
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .highlight {
+            background: linear-gradient(transparent 60%, #fef08a 60%);
+            font-weight: 700;
+        }
+
+        .bullet-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .bullet-list li {
+            padding: 10px 0;
+            font-size: 18px;
+            color: #2d3748;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .bullet-list li:before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: bold;
+            font-size: 22px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .title-slide {
+            justify-content: center;
+            text-align: center;
+        }
+
+        .conclusion-box {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .conclusion-box .emoji {
+            font-size: 80px;
+        }
+
+        .interactive-demo {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .demo-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .demo-button {
+            background: #48bb78;
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .demo-button:hover {
+            background: #38a169;
+        }
+
+        .demo-result {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            min-height: 80px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .quiz-option {
+            background: #f7fafc;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .quiz-option:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .quiz-option.correct {
+            background: #c6f6d5;
+            border-color: #48bb78;
+        }
+
+        .quiz-option.wrong {
+            background: #fed7d7;
+            border-color: #fc8181;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: 표지 -->
+        <div class="slide active title-slide">
+            <div class="slide-number">1 / 20</div>
+            <div class="emoji">🤖✨</div>
+            <h1 style="font-size: 52px;">AI와 함께하는<br>우리의 생활</h1>
+            <p class="subtitle">초등학생을 위한 인공지능 이해하기</p>
         </div>
-      )
-    },
-    // Slide 2: What is AI?
-    {
-      title: "AI란 무엇인가?",
-      subtitle: "스스로 생각하고 예측하는 컴퓨터",
-      content: (
-        <div className="flex flex-col gap-6">
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl">
-            <p className="text-xl font-semibold text-gray-800 mb-4">일상 속 AI 예시</p>
-            <ul className="space-y-3">
-              <li className="flex items-center gap-3">
-                <Tv className="w-6 h-6 text-purple-600" />
-                <span className="text-lg">영화·영상 추천</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <MessageSquare className="w-6 h-6 text-pink-600" />
-                <span className="text-lg">맞춤 뉴스 제공</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Brain className="w-6 h-6 text-indigo-600" />
-                <span className="text-lg">음성인식 (시리, 빅스비)</span>
-              </li>
-            </ul>
-          </div>
-          <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
-            <p className="text-center font-semibold text-gray-700 mb-4">AI의 작동 흐름</p>
-            <div className="flex items-center justify-center gap-4">
-              <div className="bg-blue-100 px-4 py-3 rounded-lg">사용자 입력</div>
-              <ChevronRight className="w-6 h-6 text-gray-400" />
-              <div className="bg-purple-100 px-4 py-3 rounded-lg">AI 분석</div>
-              <ChevronRight className="w-6 h-6 text-gray-400" />
-              <div className="bg-green-100 px-4 py-3 rounded-lg">결과 제공</div>
+
+        <!-- Slide 2: 학습 목표 -->
+        <div class="slide">
+            <div class="slide-number">2 / 20</div>
+            <h2>오늘 배울 내용</h2>
+            <div class="content-box">
+                <ul class="bullet-list">
+                    <li>AI가 무엇인지 이해하기</li>
+                    <li>우리 주변의 AI 서비스 찾아보기</li>
+                    <li>AI의 다양한 종류 알아보기</li>
+                    <li>ChatGPT 사용법 배우기</li>
+                    <li>AI 사용 시 주의사항 익히기</li>
+                    <li>실제로 AI와 대화해보기</li>
+                </ul>
             </div>
-          </div>
         </div>
-      )
-    },
-    // Slide 3: Types of AI
-    {
-      title: "AI의 종류",
-      subtitle: "우리 주변의 다양한 AI",
-      content: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
-            <h3 className="text-xl font-bold text-blue-900 mb-2">추천형 AI</h3>
-            <p className="text-gray-700">넷플릭스, 유튜브 추천</p>
-            <p className="text-sm text-gray-600 mt-2">내 취향을 분석해서 콘텐츠를 추천</p>
-          </div>
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl">
-            <h3 className="text-xl font-bold text-purple-900 mb-2">생성형 AI</h3>
-            <p className="text-gray-700">ChatGPT, DALL·E</p>
-            <p className="text-sm text-gray-600 mt-2">글, 그림, 코드를 새롭게 만들어냄</p>
-          </div>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
-            <h3 className="text-xl font-bold text-green-900 mb-2">자율주행 AI</h3>
-            <p className="text-gray-700">테슬라, 구글 웨이모</p>
-            <p className="text-sm text-gray-600 mt-2">스스로 운전하는 자동차</p>
-          </div>
-          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl">
-            <h3 className="text-xl font-bold text-yellow-900 mb-2">음성비서 AI</h3>
-            <p className="text-gray-700">시리, 빅스비, 알렉사</p>
-            <p className="text-sm text-gray-600 mt-2">말로 명령하면 대답하고 실행</p>
-          </div>
-        </div>
-      )
-    },
-    // Slide 4: What is ChatGPT?
-    {
-      title: "ChatGPT란?",
-      subtitle: "대화하는 인공지능, 질문에 답하고 글을 생성함",
-      content: (
-        <div className="flex flex-col gap-6">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-8 rounded-xl">
-            <div className="flex items-center gap-3 mb-6">
-              <MessageSquare className="w-10 h-10 text-green-600" />
-              <h3 className="text-2xl font-bold text-gray-800">ChatGPT의 특징</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">1</div>
-                <div>
-                  <p className="font-semibold text-lg">대화형 AI</p>
-                  <p className="text-gray-600">마치 사람과 대화하듯 주고받을 수 있어요</p>
+
+        <!-- Slide 3: AI는 이미 우리 곁에 -->
+        <div class="slide">
+            <div class="slide-number">3 / 20</div>
+            <h1>AI는 이미 우리 곁에 있습니다</h1>
+            <div class="service-grid">
+                <div class="service-card">
+                    <div class="emoji">📺</div>
+                    <h3>유튜브</h3>
+                    <p>내가 좋아할 영상 추천</p>
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">2</div>
-                <div>
-                  <p className="font-semibold text-lg">텍스트 기반 생성</p>
-                  <p className="text-gray-600">글, 코드, 번역, 요약 등 다양한 텍스트 작성</p>
+                <div class="service-card">
+                    <div class="emoji">🗺️</div>
+                    <h3>카카오맵</h3>
+                    <p>가장 빠른 길 안내</p>
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold">3</div>
-                <div>
-                  <p className="font-semibold text-lg">다양한 질문 가능</p>
-                  <p className="text-gray-600">일상 질문부터 전문적인 내용까지</p>
+                <div class="service-card">
+                    <div class="emoji">🎬</div>
+                    <h3>넷플릭스</h3>
+                    <p>재미있는 영화 찾기</p>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    // Slide 5: ChatGPT Cautions
-    {
-      title: "ChatGPT 사용 시 주의점",
-      subtitle: "똑똑하게 활용하기",
-      content: (
-        <div className="flex flex-col gap-4">
-          <div className="bg-red-50 border-2 border-red-200 p-6 rounded-xl flex items-start gap-4">
-            <AlertCircle className="w-8 h-8 text-red-600 flex-shrink-0" />
-            <div>
-              <p className="font-bold text-lg text-red-900 mb-2">사실 오류 가능</p>
-              <p className="text-gray-700">ChatGPT도 틀릴 수 있어요. 중요한 정보는 꼭 검증하세요!</p>
-            </div>
-          </div>
-          <div className="bg-orange-50 border-2 border-orange-200 p-6 rounded-xl flex items-start gap-4">
-            <AlertCircle className="w-8 h-8 text-orange-600 flex-shrink-0" />
-            <div>
-              <p className="font-bold text-lg text-orange-900 mb-2">개인정보 입력 금지</p>
-              <p className="text-gray-700">이름, 주소, 전화번호, 비밀번호 등은 절대 입력하지 마세요!</p>
-            </div>
-          </div>
-          <div className="bg-yellow-50 border-2 border-yellow-200 p-6 rounded-xl flex items-start gap-4">
-            <AlertCircle className="w-8 h-8 text-yellow-600 flex-shrink-0" />
-            <div>
-              <p className="font-bold text-lg text-yellow-900 mb-2">답변을 무조건 신뢰하지 말 것</p>
-              <p className="text-gray-700">여러 번 질문하고, 다른 자료와 비교해보세요</p>
-            </div>
-          </div>
-          <div className="bg-blue-50 p-4 rounded-lg mt-2">
-            <p className="text-center font-semibold text-blue-900">
-              💡 활동: ChatGPT가 틀릴 수 있는 질문 찾기
-            </p>
-          </div>
-        </div>
-      )
-    },
-    // Slide 6: What is a Prompt?
-    {
-      title: "프롬프트란?",
-      subtitle: "질문하는 힘 - AI에게 지시하는 명령어",
-      content: (
-        <div className="flex flex-col gap-6">
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-8 rounded-xl">
-            <h3 className="text-2xl font-bold text-indigo-900 mb-6 text-center">프롬프트 공식</h3>
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
-              <div className="bg-pink-100 px-6 py-4 rounded-lg text-center">
-                <p className="font-bold text-pink-900 text-lg">역할 (Role)</p>
-                <p className="text-sm text-gray-600 mt-1">누구처럼?</p>
-              </div>
-              <span className="text-2xl font-bold text-gray-400">+</span>
-              <div className="bg-blue-100 px-6 py-4 rounded-lg text-center">
-                <p className="font-bold text-blue-900 text-lg">목적 (Task)</p>
-                <p className="text-sm text-gray-600 mt-1">무엇을?</p>
-              </div>
-              <span className="text-2xl font-bold text-gray-400">+</span>
-              <div className="bg-green-100 px-6 py-4 rounded-lg text-center">
-                <p className="font-bold text-green-900 text-lg">조건 (Detail)</p>
-                <p className="text-sm text-gray-600 mt-1">어떻게?</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white border-2 border-indigo-200 p-6 rounded-xl">
-            <p className="font-semibold text-gray-800 mb-3">✨ 예시:</p>
-            <div className="bg-indigo-50 p-4 rounded-lg">
-              <p className="text-gray-800 leading-relaxed">
-                <span className="font-bold text-pink-700">너는 초등학교 선생님이야.</span>{' '}
-                <span className="font-bold text-blue-700">10세 아이가 이해할 수 있도록</span>{' '}
-                <span className="font-bold text-green-700">분수를 설명해줘.</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    // Slide 7: Good vs Bad Questions
-    {
-      title: "좋은 질문 vs 나쁜 질문",
-      subtitle: "질문의 차이가 답변의 차이를 만듭니다",
-      content: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-red-50 border-2 border-red-200 p-6 rounded-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <XCircle className="w-8 h-8 text-red-600" />
-              <h3 className="text-xl font-bold text-red-900">나쁜 질문</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-red-700 font-medium">❌ 분수 알려줘</p>
-                <p className="text-sm text-gray-600 mt-1">→ 막연하고 조건이 없음</p>
-              </div>
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-red-700 font-medium">❌ 날씨 어때?</p>
-                <p className="text-sm text-gray-600 mt-1">→ 장소와 시간이 불명확</p>
-              </div>
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-red-700 font-medium">❌ 글 써줘</p>
-                <p className="text-sm text-gray-600 mt-1">→ 주제와 형식이 없음</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-green-50 border-2 border-green-200 p-6 rounded-xl">
-            <div className="flex items-center gap-2 mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-              <h3 className="text-xl font-bold text-green-900">좋은 질문</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-green-700 font-medium">✅ 초등학생이 이해하도록 사과 그림으로 분수 설명해줘</p>
-                <p className="text-sm text-gray-600 mt-1">→ 대상, 방법 구체적</p>
-              </div>
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-green-700 font-medium">✅ 오늘 서울 강남구 날씨를 아침·오후·저녁으로 알려줘</p>
-                <p className="text-sm text-gray-600 mt-1">→ 장소, 시간 명확</p>
-              </div>
-              <div className="bg-white p-3 rounded-lg">
-                <p className="text-green-700 font-medium">✅ 환경 보호를 주제로 중학생용 3문단 설득 글 써줘</p>
-                <p className="text-sm text-gray-600 mt-1">→ 주제, 대상, 형식 명확</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    // Slide 8: Practice 1
-    {
-      title: "실습 1 - 자기소개 시키기",
-      subtitle: "ChatGPT에게 역할과 조건 알려주기",
-      content: (
-        <div className="flex flex-col gap-6">
-          <div className="bg-gradient-to-r from-cyan-50 to-blue-50 p-6 rounded-xl">
-            <p className="text-xl font-bold text-cyan-900 mb-3">🎯 활동 목표</p>
-            <p className="text-gray-700 text-lg">AI에게 원하는 역할과 조건을 명확히 알려주어 자기소개를 시켜봅시다</p>
-          </div>
-          <div className="bg-white border-2 border-cyan-200 p-6 rounded-xl">
-            <p className="font-semibold text-gray-800 mb-4">📝 예시 프롬프트:</p>
-            <div className="space-y-3">
-              <div className="bg-cyan-50 p-4 rounded-lg">
-                <p className="text-gray-800 font-medium">너는 나의 친절한 AI 비서야. 나를 소개하는 글을 3문장으로 써줘.</p>
-              </div>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-gray-800 font-medium">너는 전문 작가야. 나를 소개하는 재미있는 글을 5문장으로 써줘.</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-yellow-50 p-5 rounded-xl">
-            <p className="text-center text-gray-700">
-              💡 <span className="font-bold">도전:</span> 역할을 바꿔가며 다양한 자기소개를 만들어보세요!
-            </p>
-          </div>
-        </div>
-      )
-    },
-    // Slide 9: Practice 2
-    {
-      title: "실습 2 - 하루 이야기 설명하기",
-      subtitle: "자신의 하루를 ChatGPT에게 요약시켜보기",
-      content: (
-        <div className="flex flex-col gap-6">
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl">
-            <p className="text-xl font-bold text-purple-900 mb-3">🎯 활동 목표</p>
-            <p className="text-gray-700 text-lg">프롬프트 조건을 바꿔가며 답변의 변화를 관찰해봅시다</p>
-          </div>
-          <div className="bg-white border-2 border-purple-200 p-6 rounded-xl">
-            <p className="font-semibold text-gray-800 mb-4">📝 예시 프롬프트:</p>
-            <div className="space-y-3">
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">기본형:</p>
-                <p className="text-gray-800 font-medium">오늘 내가 한 일을 하루 일기처럼 5문장으로 요약해줘.</p>
-              </div>
-              <div className="bg-pink-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">변형 1:</p>
-                <p className="text-gray-800 font-medium">오늘 내가 한 일을 감동적인 이야기처럼 써줘.</p>
-              </div>
-              <div className="bg-indigo-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">변형 2:</p>
-                <p className="text-gray-800 font-medium">오늘 내가 한 일을 시간순으로 3개 항목으로 정리해줘.</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-yellow-50 p-5 rounded-xl">
-            <p className="text-center text-gray-700">
-              🔍 <span className="font-bold">관찰 포인트:</span> 조건을 바꾸면 답변이 어떻게 달라지나요?
-            </p>
-          </div>
-        </div>
-      )
-    },
-    // Slide 10: Practice 3
-    {
-      title: "실습 3 - 질문 바꾸기 게임",
-      subtitle: "같은 주제, 다른 질문으로 다양한 답변 얻기",
-      content: (
-        <div className="flex flex-col gap-6">
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-xl">
-            <p className="text-xl font-bold text-orange-900 mb-3">🎯 활동 목표</p>
-            <p className="text-gray-700 text-lg">질문 방식에 따라 AI의 답변이 완전히 달라진다는 것을 경험하기</p>
-          </div>
-          <div className="bg-white border-2 border-orange-200 p-6 rounded-xl">
-            <p className="font-semibold text-gray-800 mb-4">🌤️ 날씨 질문 비교 예시:</p>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="bg-red-100 text-red-700 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold text-sm">1</div>
-                <div className="flex-1 bg-red-50 p-3 rounded-lg">
-                  <p className="text-gray-800">오늘 날씨 알려줘</p>
-                  <p className="text-xs text-gray-500 mt-1">→ 막연한 질문</p>
+                <div class="service-card">
+                    <div class="emoji">🎵</div>
+                    <h3>멜론/지니</h3>
+                    <p>취향에 맞는 노래</p>
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="bg-orange-100 text-orange-700 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold text-sm">2</div>
-                <div className="flex-1 bg-orange-50 p-3 rounded-lg">
-                  <p className="text-gray-800">오늘 서울 강남구 날씨를 아침·오후·저녁으로 알려줘</p>
-                  <p className="text-xs text-gray-500 mt-1">→ 구체적인 질문</p>
+                <div class="service-card">
+                    <div class="emoji">📱</div>
+                    <h3>시리/빅스비</h3>
+                    <p>음성으로 명령하기</p>
                 </div>
-              </div>
+                <div class="service-card">
+                    <div class="emoji">📧</div>
+                    <h3>스팸 필터</h3>
+                    <p>나쁜 메일 걸러내기</p>
+                </div>
             </div>
-          </div>
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-5 rounded-xl">
-            <p className="font-semibold text-green-900 mb-3">💡 여러분도 해보세요:</p>
-            <ul className="space-y-2 text-gray-700">
-              <li>• 음식 추천 받기 (막연 vs 구체적)</li>
-              <li>• 책 요약 받기 (짧게 vs 자세하게)</li>
-              <li>• 학습 계획 만들기 (일반 vs 맞춤형)</li>
-            </ul>
-          </div>
-        </div>
-      )
-    },
-    // Slide 11: Summary
-    {
-      title: "오늘 배운 것 정리",
-      subtitle: "AI와 함께하는 미래를 준비하세요",
-      content: (
-        <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center">
-              <div className="text-4xl mb-3">🤖</div>
-              <p className="font-bold text-blue-900 text-lg mb-2">AI는 이미 우리 일상에 있다</p>
-              <p className="text-sm text-gray-600">넷플릭스, 유튜브부터 ChatGPT까지</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center">
-              <div className="text-4xl mb-3">💬</div>
-              <p className="font-bold text-purple-900 text-lg mb-2">좋은 질문이 AI 활용의 핵심이다</p>
-              <p className="text-sm text-gray-600">역할 + 목적 + 조건</p>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl text-center">
-              <div className="text-4xl mb-3">🔄</div>
-              <p className="font-bold text-green-900 text-lg mb-2">질문을 바꾸면 답도 달라진다</p>
-              <p className="text-sm text-gray-600">프롬프트 실험의 중요성</p>
-            </div>
-          </div>
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl">
-            <p className="text-xl font-bold text-orange-900 mb-4 text-center">📚 활동 아이디어</p>
-            <ul className="space-y-2 text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-orange-500 font-bold">•</span>
-                <span>오늘 배운 질문 공식(R+T+D)을 내 생활에 적용해보기</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-orange-500 font-bold">•</span>
-                <span>가족/자녀와 함께 프롬프트 실험하기</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-orange-500 font-bold">•</span>
-                <span>블로그나 SNS 글쓰기 아이디어 ChatGPT에게 요청하기</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-orange-500 font-bold">•</span>
-                <span>AI가 틀린 답을 찾고, 스스로 검증하기</span>
-              </li>
-            </ul>
-          </div>
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-xl text-center text-white">
-            <p className="text-2xl font-bold">🎉 축하합니다!</p>
-            <p className="mt-2 text-lg">이제 여러분도 AI를 똑똑하게 활용할 수 있습니다</p>
-          </div>
-        </div>
-      )
-    }
-  ];
-
-  const nextSlide = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1);
-    }
-  };
-
-  const prevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  };
-
-  const goToSlide = (index) => {
-    setCurrentSlide(index);
-  };
-
-  const currentSlideData = slides[currentSlide];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-t-2xl shadow-lg p-6 border-b-4 border-indigo-500">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 text-center">
-            {currentSlideData.title}
-          </h1>
-          <p className="text-lg text-gray-600 text-center mt-2">
-            {currentSlideData.subtitle}
-          </p>
         </div>
 
-        {/* Content */}
-        <div className="bg-white shadow-lg p-8 md:p-12 min-h-[500px]">
-          {currentSlideData.content}
-        </div>
-
-        {/* Navigation */}
-        <div className="bg-white rounded-b-2xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={prevSlide}
-              disabled={currentSlide === 0}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-                currentSlide === 0
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
-            >
-              <ChevronLeft className="w-5 h-5" />
-              이전
-            </button>
-
-            <div className="flex items-center gap-2">
-              <span className="text-gray-600 font-semibold">
-                {currentSlide + 1} / {slides.length}
-              </span>
+        <!-- Slide 4: AI란 무엇인가? -->
+        <div class="slide">
+            <div class="slide-number">4 / 20</div>
+            <h2>AI란 무엇일까요?</h2>
+            <div class="emoji">🧠💡</div>
+            <h1 style="color: #667eea; text-align: center; margin-top: 30px; font-size: 38px;">
+                "스스로 생각하고 예측하는 컴퓨터"
+            </h1>
+            <div class="content-box" style="margin-top: 30px;">
+                <h3>AI = <span class="highlight">인공지능</span> (Artificial Intelligence)</h3>
+                <ul class="bullet-list" style="margin-top: 20px;">
+                    <li>사람처럼 배우고 학습할 수 있어요</li>
+                    <li>경험을 통해 점점 더 똑똑해져요</li>
+                    <li>패턴을 찾아내고 예측을 해요</li>
+                </ul>
             </div>
-
-            <button
-              onClick={nextSlide}
-              disabled={currentSlide === slides.length - 1}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
-                currentSlide === slides.length - 1
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
-            >
-              다음
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Slide indicators */}
-          <div className="flex justify-center gap-2 flex-wrap">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all ${
-                  index === currentSlide
-                    ? 'bg-indigo-600 w-8'
-                    : 'bg-gray-300 hover:bg-gray-400'
-                }`}
-                aria-label={`슬라이드 ${index + 1}로 이동`}
-              />
-            ))}
-          </div>
         </div>
-      </div>
+
+        <!-- Slide 5: AI가 하는 일 -->
+        <div class="slide">
+            <div class="slide-number">5 / 20</div>
+            <h2>AI가 할 수 있는 일들</h2>
+            <div class="step-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>보기 👀</h3>
+                    <p>사진 속 얼굴이나 물건을 알아봐요</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>듣기 👂</h3>
+                    <p>사람 목소리를 이해하고 명령을 실행해요</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>말하기 🗣️</h3>
+                    <p>질문에 대답하고 대화를 나눠요</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>만들기 ✍️</h3>
+                    <p>글, 그림, 음악을 창작해요</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: AI의 종류 -->
+        <div class="slide">
+            <div class="slide-number">6 / 20</div>
+            <h2>AI의 종류</h2>
+            <div class="ai-types">
+                <div class="ai-type">
+                    <div class="emoji" style="font-size: 45px;">🎨</div>
+                    <h3>생성형 AI</h3>
+                    <p>새로운 콘텐츠를 만들어내요<br><br><strong>예시:</strong><br>ChatGPT, 미드저니, DALL-E</p>
+                </div>
+                <div class="ai-type">
+                    <div class="emoji" style="font-size: 45px;">👍</div>
+                    <h3>추천형 AI</h3>
+                    <p>내 취향을 분석해서 좋아할 것을 찾아줘요<br><br><strong>예시:</strong><br>유튜브, 넷플릭스, 쿠팡</p>
+                </div>
+                <div class="ai-type">
+                    <div class="emoji" style="font-size: 45px;">🔍</div>
+                    <h3>인식형 AI</h3>
+                    <p>얼굴, 목소리, 물체를 알아봐요<br><br><strong>예시:</strong><br>얼굴인식 잠금해제, 시리</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: 생성형 AI 자세히 -->
+        <div class="slide">
+            <div class="slide-number">7 / 20</div>
+            <h2>생성형 AI 알아보기</h2>
+            <div class="example-box">
+                <h3>💡 생성형 AI의 예시</h3>
+                <div style="margin-top: 15px;">
+                    <p style="font-size: 18px; line-height: 1.8; color: #2d3748;">
+                        <strong>ChatGPT:</strong> 질문에 답하고 글을 써요<br>
+                        <strong>미드저니/DALL-E:</strong> 설명만 하면 그림을 그려요<br>
+                        <strong>Suno:</strong> 노래 가사를 주면 음악을 만들어요<br>
+                        <strong>GitHub Copilot:</strong> 프로그래밍 코드를 작성해요
+                    </p>
+                </div>
+            </div>
+            <div class="info-box" style="margin-top: 20px;">
+                <h3>✨ 어떻게 작동할까?</h3>
+                <p style="font-size: 18px; line-height: 1.8; color: #2d3748;">
+                    수많은 데이터를 학습해서 패턴을 찾아내고, 그 패턴을 바탕으로 새로운 것을 만들어냅니다!
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 8: ChatGPT 소개 -->
+        <div class="slide">
+            <div class="slide-number">8 / 20</div>
+            <h2>ChatGPT란?</h2>
+            <div class="emoji">💬🤖</div>
+            <h1 style="color: #48bb78; text-align: center; margin-top: 25px; font-size: 36px;">
+                "대화하는 인공지능"
+            </h1>
+            <div class="content-box" style="margin-top: 25px;">
+                <ul class="bullet-list">
+                    <li>OpenAI라는 회사가 만든 AI 챗봇이에요</li>
+                    <li>질문하면 사람처럼 자연스럽게 대답해요</li>
+                    <li>공부, 숙제, 궁금한 것을 물어볼 수 있어요</li>
+                    <li>여러 언어로 대화할 수 있어요 (한국어도 가능!)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 9: ChatGPT 대화 예시 1 -->
+        <div class="slide">
+            <div class="slide-number">9 / 20</div>
+            <h2>ChatGPT 대화 예시 - 학습 도우미</h2>
+            <div style="background: #f7fafc; border-radius: 15px; padding: 25px; margin-top: 20px;">
+                <div class="chat-bubble user-bubble">
+                    <strong>학생:</strong> 공룡이 왜 멸종했는지 쉽게 설명해줘
+                </div>
+                <div class="chat-bubble ai-bubble">
+                    <strong>ChatGPT:</strong> 약 6,600만 년 전에 거대한 운석이 지구에 충돌했어요. 이로 인해 엄청난 먼지가 하늘을 뒤덮어서 햇빛이 가려졌고, 식물이 자라지 못했어요. 식물이 없어지자 초식공룡이 먹을 것이 없어졌고, 초식공룡이 사라지자 육식공룡도 먹을 것이 없어져서 함께 멸종했답니다.
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: ChatGPT 대화 예시 2 -->
+        <div class="slide">
+            <div class="slide-number">10 / 20</div>
+            <h2>ChatGPT 대화 예시 - 창작 도우미</h2>
+            <div style="background: #f7fafc; border-radius: 15px; padding: 25px; margin-top: 20px;">
+                <div class="chat-bubble user-bubble">
+                    <strong>학생:</strong> 우주를 여행하는 고양이 이야기를 짧게 써줘
+                </div>
+                <div class="chat-bubble ai-bubble">
+                    <strong>ChatGPT:</strong> 별빛 고양이 루나는 작은 우주선을 타고 은하수를 여행했어요. 어느 날, 반짝이는 별 하나가 길을 잃고 울고 있었어요. 루나는 별을 등에 태우고 별자리 고향까지 데려다 주었답니다. 그 후로 밤하늘의 별들은 모두 루나의 친구가 되었어요. ✨
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: AI와 사람의 차이 -->
+        <div class="slide">
+            <div class="slide-number">11 / 20</div>
+            <h2>AI와 사람의 차이점</h2>
+            <table class="comparison-table">
+                <tr>
+                    <th>구분</th>
+                    <th>AI 🤖</th>
+                    <th>사람 👨👩</th>
+                </tr>
+                <tr>
+                    <td><strong>학습</strong></td>
+                    <td>데이터를 통해 학습</td>
+                    <td>경험과 감정으로 학습</td>
+                </tr>
+                <tr>
+                    <td><strong>감정</strong></td>
+                    <td>감정이 없어요</td>
+                    <td>기쁨, 슬픔 등을 느껴요</td>
+                </tr>
+                <tr>
+                    <td><strong>창의성</strong></td>
+                    <td>학습한 내용을 조합해요</td>
+                    <td>완전히 새로운 걸 만들어요</td>
+                </tr>
+                <tr>
+                    <td><strong>실수</strong></td>
+                    <td>가끔 틀린 정보를 줘요</td>
+                    <td>실수하지만 배워요</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 12: AI 사용 시 주의점 -->
+        <div class="slide">
+            <div class="slide-number">12 / 20</div>
+            <h2>AI 사용 시 주의할 점</h2>
+            <div class="warning-box">
+                <h3>⚠️ 꼭 기억하세요!</h3>
+                <ul class="warning-list">
+                    <li>AI가 말하는 것이 항상 100% 정확하지는 않아요</li>
+                    <li>중요한 정보는 다른 곳에서도 꼭 확인해야 해요</li>
+                    <li>이름, 주소, 전화번호 같은 개인정보는 절대 알려주면 안 돼요</li>
+                    <li>숙제는 AI에게 물어봐도 되지만, 답을 그대로 베끼면 안 돼요</li>
+                    <li>어려운 문제는 선생님이나 부모님께 여쭤보는 게 더 좋아요</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 13: AI가 틀릴 수 있는 이유 -->
+        <div class="slide">
+            <div class="slide-number">13 / 20</div>
+            <h2>AI가 왜 틀릴까요?</h2>
+            <div class="example-box">
+                <h3>🤔 AI가 실수하는 이유</h3>
+                <div class="step-grid" style="margin-top: 20px;">
+                    <div class="step-card">
+                        <h3>❌ 오래된 정보</h3>
+                        <p>AI는 학습한 시점까지의 정보만 알아요</p>
+                    </div>
+                    <div class="step-card">
+                        <h3>❌ 잘못된 학습</h3>
+                        <p>인터넷의 틀린 정보도 학습할 수 있어요</p>
+                    </div>
+                    <div class="step-card">
+                        <h3>❌ 이해 부족</h3>
+                        <p>복잡한 질문을 잘못 이해할 수 있어요</p>
+                    </div>
+                    <div class="step-card">
+                        <h3>❌ 상황 판단</h3>
+                        <p>맥락을 완벽히 파악하지 못해요</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: 좋은 질문하는 방법 -->
+        <div class="slide">
+            <div class="slide-number">14 / 20</div>
+            <h2>AI에게 잘 질문하는 방법</h2>
+            <div class="info-box">
+                <h3>✅ 좋은 질문의 예</h3>
+                <div style="margin-top: 15px;">
+                    <p style="font-size: 18px; line-height: 1.8; color: #2d3748; margin-bottom: 10px;">
+                        <strong>구체적으로:</strong> "태양계 행성 중 가장 큰 행성은 뭐야?" ✓<br>
+                        <strong>맥락 제공:</strong> "초등학생이 이해할 수 있게 광합성을 설명해줘" ✓<br>
+                        <strong>단계별:</strong> "김밥 만드는 순서를 1단계부터 알려줘" ✓
+                    </p>
+                </div>
+            </div>
+            <div class="warning-box" style="margin-top: 20px;">
+                <h3>❌ 좋지 않은 질문의 예</h3>
+                <div style="margin-top: 15px;">
+                    <p style="font-size: 18px; line-height: 1.8; color: #2d3748;">
+                        <strong>너무 막연함:</strong> "뭔가 재밌는 거 알려줘" ✗<br>
+                        <strong>정보 부족:</strong> "그거 어떻게 해?" ✗<br>
+                        <strong>개인정보:</strong> "우리 집 주소는 서울시..." ✗
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: 실습 예제 1 - 자기소개 -->
+        <div class="slide">
+            <div class="slide-number">15 / 20</div>
+            <h2>실습 1: 나를 소개하는 글 만들기</h2>
+            <div class="practice-box">
+                <h3>📝 실습 미션</h3>
+                <p style="font-size: 18px; margin: 15px 0; color: #1e3a8a;">
+                    ChatGPT에게 나를 소개하는 글을 써달라고 요청해보세요!
+                </p>
+                <div class="interactive-demo">
+                    <h4 style="color: #667eea; margin-bottom: 15px;">예시 질문 만들기</h4>
+                    <input type="text" class="demo-input" id="nameInput" placeholder="내 이름을 입력하세요">
+                    <input type="text" class="demo-input" id="hobbyInput" placeholder="좋아하는 것을 입력하세요 (예: 축구, 그림 그리기)">
+                    <input type="text" class="demo-input" id="dreamInput" placeholder="장래희망을 입력하세요">
+                    <button class="demo-button" onclick="generatePrompt()">질문 만들기</button>
+                    <div class="demo-result" id="promptResult" style="display: none;">
+                        <strong>ChatGPT에게 이렇게 물어보세요:</strong><br><br>
+                        <span id="generatedPrompt"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 16: 실습 예제 2 - 이야기 만들기 -->
+        <div class="slide">
+            <div class="slide-number">16 / 20</div>
+            <h2>실습 2: 창작 이야기 만들기</h2>
+            <div class="practice-box">
+                <h3>🎭 실습 미션</h3>
+                <p style="font-size: 18px; margin: 15px 0; color: #1e3a8a;">
+                    좋아하는 주제로 짧은 이야기를 만들어보세요!
+                </p>
+                <div class="example-box" style="margin-top: 20px;">
+                    <h3>💡 질문 예시</h3>
+                    <div class="chat-bubble user-bubble">
+                        "마법 학교에 다니는 고양이 이야기를 3문장으로 써줘"
+                    </div>
+                    <div class="chat-bubble user-bubble">
+                        "우주에서 친구를 만난 로봇 이야기를 재미있게 써줘"
+                    </div>
+                    <div class="chat-bubble user-bubble">
+                        "시간 여행을 하는 초등학생의 모험 이야기를 써줘"
+                    </div>
+                </div>
+                <div class="info-box" style="margin-top: 20px;">
+                    <p style="font-size: 18px; color: #0d9488;">
+                        <strong>💡 팁:</strong> AI가 만든 이야기를 내 상상력을 더해서 더욱 재미있게 바꿔보세요!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 17: 실습 예제 3 - 학습 도우미 -->
+        <div class="slide">
+            <div class="slide-number">17 / 20</div>
+            <h2>실습 3: 학습 도우미로 활용하기</h2>
+            <div class="practice-box">
+                <h3>📚 실습 미션</h3>
+                <p style="font-size: 18px; margin: 15px 0; color: #1e3a8a;">
+                    궁금한 것을 AI에게 물어보고, 설명을 듣고 정리해보세요!
+                </p>
+                <div class="step-grid" style="margin-top: 20px;">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3>과학</h3>
+                        <p>"왜 하늘은 파란색이야? 초등학생이 이해하기 쉽게 설명해줘"</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3>수학</h3>
+                        <p>"분수의 개념을 예시와 함께 쉽게 알려줘"</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3>역사</h3>
+                        <p>"세종대왕이 한글을 만든 이유를 재미있게 설명해줘"</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <h3>영어</h3>
+                        <p>"'친구'를 영어로 어떻게 말하고, 관련 표현도 알려줘"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18: 퀴즈 타임 -->
+        <div class="slide">
+            <div class="slide-number">18 / 20</div>
+            <h2>복습 퀴즈!</h2>
+            <div class="content-box">
+                <h3 style="color: #667eea; margin-bottom: 20px;">🎯 다음 중 올바른 것을 골라보세요</h3>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">
+                    <strong>Q1:</strong> AI는 항상 정확한 정보만 알려준다 (O / X)
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, true)">
+                    <strong>Q2:</strong> AI에게 개인정보를 알려주면 안 된다 (O / X)
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, true)">
+                    <strong>Q3:</strong> AI는 학습을 통해 점점 발전한다 (O / X)
+                </div>
+                <div class="quiz-option" onclick="checkAnswer(this, false)">
+                    <strong>Q4:</strong> ChatGPT는 사람처럼 감정을 느낄 수 있다 (O / X)
+                </div>
+            </div>
+            <div id="quizResult" style="margin-top: 20px; padding: 20px; background: #f7fafc; border-radius: 10px; display: none;">
+                <h3 style="color: #48bb78;">정답입니다! 👏</h3>
+            </div>
+        </div>
+
+        <!-- Slide 19: AI의 미래 -->
+        <div class="slide">
+            <div class="slide-number">19 / 20</div>
+            <h2>AI의 미래</h2>
+            <div class="emoji">🚀🌟</div>
+            <div class="content-box">
+                <h3>앞으로 AI는 이렇게 발전할 거예요</h3>
+                <ul class="bullet-list" style="margin-top: 20px;">
+                    <li>더 똑똑해져서 복잡한 문제도 해결할 수 있어요</li>
+                    <li>의사 선생님을 도와 병을 더 빨리 찾아낼 거예요</li>
+                    <li>자율주행 자동차가 더 안전해질 거예요</li>
+                    <li>환경 문제를 해결하는 데 도움을 줄 거예요</li>
+                    <li>우주 탐사에도 활용될 거예요</li>
+                </ul>
+            </div>
+            <div class="info-box" style="margin-top: 20px;">
+                <p style="font-size: 18px; color: #0d9488; line-height: 1.8;">
+                    <strong>💡 여러분이 만드는 미래:</strong><br>
+                    여러분이 자라서 AI 개발자가 되거나, AI를 활용하는 다양한 직업을 가질 수 있어요!
+                </p>
+            </div>
+        </div>
+
+        <!-- Slide 20: 정리 -->
+        <div class="slide">
+            <div class="slide-number">20 / 20</div>
+            <div class="conclusion-box">
+                <div class="emoji">🌟🤖👧👦</div>
+                <h2>AI와 나는 이미<br>함께 살고 있다</h2>
+                <div class="content-box" style="margin-top: 30px; text-align: left;">
+                    <h3 style="color: #667eea; text-align: center; margin-bottom: 20px;">오늘 배운 내용</h3>
+                    <ul class="bullet-list">
+                        <li>AI는 스스로 학습하고 예측하는 컴퓨터예요</li>
+                        <li>우리 생활 곳곳에 AI가 사용되고 있어요</li>
+                        <li>ChatGPT는 대화하는 인공지능이에요</li>
+                        <li>AI 정보를 100% 믿지 말고 확인해야 해요</li>
+                        <li>개인정보는 절대 AI에게 알려주면 안 돼요</li>
+                        <li>AI를 똑똑하게 활용하면 공부와 창작에 도움이 돼요</li>
+                    </ul>
+                </div>
+                <h2 style="margin-top: 40px; font-size: 32px; color: #48bb78;">
+                    AI와 함께 더 멋진 미래를 만들어요! 🚀
+                </h2>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button id="prevBtn" onclick="changeSlide(-1)">◀ 이전</button>
+            <button id="nextBtn" onclick="changeSlide(1)">다음 ▶</button>
+        </div>
     </div>
-  );
-};
 
-export default AIPresentation;
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            slides[currentSlide].scrollTop = 0;
+            
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        // 실습 1: 자기소개 프롬프트 생성
+        function generatePrompt() {
+            const name = document.getElementById('nameInput').value;
+            const hobby = document.getElementById('hobbyInput').value;
+            const dream = document.getElementById('dreamInput').value;
+
+            if (!name || !hobby || !dream) {
+                alert('모든 칸을 채워주세요!');
+                return;
+            }
+
+            const prompt = `"나는 ${name}이고, ${hobby}를 좋아하는 초등학생이야. 내 꿈은 ${dream}이 되는 거야. 나를 소개하는 재미있는 글을 3문장으로 써줘."`;
+            
+            document.getElementById('generatedPrompt').textContent = prompt;
+            document.getElementById('promptResult').style.display = 'block';
+        }
+
+        // 퀴즈 정답 체크
+        function checkAnswer(element, isCorrect) {
+            const allOptions = document.querySelectorAll('.quiz-option');
+            allOptions.forEach(opt => {
+                opt.onclick = null;
+                opt.style.cursor = 'default';
+            });
+
+            if (isCorrect) {
+                element.classList.add('correct');
+                element.innerHTML += ' <strong style="color: #48bb78;">✓ 정답!</strong>';
+            } else {
+                element.classList.add('wrong');
+                element.innerHTML += ' <strong style="color: #fc8181;">✗ 틀렸어요</strong>';
+            }
+        }
+
+        // 키보드 방향키로도 조작 가능
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && currentSlide > 0) changeSlide(-1);
+            if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) changeSlide(1);
+        });
+
+        // 초기 버튼 상태 설정
+        document.getElementById('prevBtn').disabled = true;
+    </script>
+</body>
+</html>
